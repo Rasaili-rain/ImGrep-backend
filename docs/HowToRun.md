@@ -8,8 +8,7 @@
     docker --version
     ```
   ### Linux/Macos
-- comming soon
-
+- install docker 
 
 
  # Quick Setup
@@ -21,37 +20,33 @@
     ```
 
  2. **Start Project**
-    ```bash
-    # Start all services
-    docker-compose up --build
-
-    # In another terminal, setup database
-    docker-compose exec web python manage.py migrate
-    ```
+   ```bash
+   # Start all services
+   docker-compose up --build
+   ```
 
 3. **You should get this on your docker desktop**
 ![alt text](image.png)
 
 
 4. **Test API**
-    - Health check: http://localhost:8000/api/health/
-    - Test endpoint: http://localhost:8000/api/test/
+    - Test endpoint: http://localhost:8000/
 
  # Project Structure
  ```
- imgrep-backend/
- ├── docker-compose.yml     # Docker services config
- ├── Dockerfile            # Python environment setup
- ├── requirements.txt      # Python packages
- ├── .env                 # Environment variables
- ├── manage.py            # Django management
- └── src/
-     ├── settings.py      # Django configuration
-     ├── urls.py          # Main URL routing
-     ├── wsgi.py          # WSGI application
-     └── api/
-         ├── views.py     # API endpoint logic
-         └── urls.py      # API URL routing
+   imgrep-backend/
+   ├── docker-compose.yml       # Docker services config
+   ├── Dockerfile               # Flask environment setup
+   ├── requirements.txt         # Python packages
+   ├── .env                     # Environment variables
+   ├── app.py                   # Main Flask app
+   └── src/
+      ├── routes/
+      │   ├── __init__.py      # Blueprint init
+      │   ├── test.py          # Example endpoints
+      └── db/
+         └── models.py        # SQLAlchemy models
+
  ```
 
  # Daily Development Workflow
@@ -67,34 +62,20 @@
 
  ## Making Changes
  1. **Code Changes**
-    - Edit files in `src/api/views.py` for API logic
-    - Edit files in `src/api/urls.py` for new endpoints
+    - Edit Flask routes in src/routes/test.py
     - Changes are automatically reloaded (no restart needed)
 
  2. **Database Changes**
     ```bash
-    # Create migration after model changes
-    docker-compose exec web python manage.py makemigrations
+      docker-compose exec web flask db migrate
+      docker-compose exec web flask db upgrade
 
-    # Apply migrations
-    docker-compose exec web python manage.py migrate
     ```
 
  3. **Adding New Packages**
     - Add package to requirements.txt
     - Rebuild: `docker-compose up --build`
 
- ## Testing Changes
- ```bash
- # Test API endpoints
- curl http://localhost:8000/api/health/
-
- # View logs
- docker-compose logs web
-
- # Django shell for debugging
- docker-compose exec web python manage.py shell
- ```
 
  ## Stopping Work
  ```bash
@@ -107,49 +88,38 @@
 
  ## Common Development Tasks
  ### Add New API Endpoint
- 1. Add view function in `src/api/views.py`:
+ 1. Add view function in `src/routes/test.py`:
     ```python
-    @api_view(['GET'])
-    def my_new_endpoint(request):
-        return Response({'message': 'Hello from new endpoint'})
+    @bp.route("/hello", methods=["GET"])
+      def hello():
+         return jsonify({"message": "Hello from Flask!"})
+
     ```
     
- 2. Add URL in `src/api/urls.py`:
+ 2. Register the route in app.py or blueprint:
     ```python
-    path('my-endpoint/', views.my_new_endpoint),
+      from src.routes.test import bp as test_bp
+      app.register_blueprint(test_bp)
     ```
     
- 3. Test: http://localhost:8000/api/my-endpoint/
 
- ### Database Models
- - Create models in new file `src/api/models.py`
- - Add to settings: Add 'src.api' to INSTALLED_APPS (already done)
- - Create migration: `docker-compose exec web python manage.py makemigrations`
- - Apply migration: `docker-compose exec web python manage.py migrate`
+ ### Database Shell
+   ```
+   docker-compose exec db psql -U postgres -d imagedb
+   ```
+   for gui use :
+   ```
+   Host: localhost
+   Port: 5432
+   User: postgres
+   Password: password123
+   Database: imagedb
 
+   ```
+ 
  ### Environment Variables
  - Edit `.env` file for configuration
  - Restart services: `docker-compose down && docker-compose up`
-
- ## API Endpoints
- ### Current Endpoints
- - GET /api/health/ - Health check
- - GET /api/test/ - Test GET request
- - POST /api/test/ - Test POST request
-
- ### Testing with cURL
- ```bash
- # Health check
- curl http://localhost:8000/api/health/
-
- # GET test
- curl http://localhost:8000/api/test/
-
- # POST test
- curl -X POST http://localhost:8000/api/test/ \
-   -H "Content-Type: application/json" \
-   -d '{"name": "test", "data": "hello world"}'
- ```
 
  ## Troubleshooting
  ### Common Issues

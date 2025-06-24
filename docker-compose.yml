@@ -1,6 +1,8 @@
 services:
   db:
-    image: postgres:15
+    build:
+      context: .
+      dockerfile: Dockerfile.pgvector
     environment:
       POSTGRES_DB: imagedb
       POSTGRES_USER: postgres
@@ -9,10 +11,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
 
   web:
     build: .
-    command: flask run --host=0.0.0.0 --port=8000
+    command: flask run --host=0.0.0.0 --port=8000 --debug
     volumes:
       - .:/app
     ports:

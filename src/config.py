@@ -3,6 +3,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    DEBUG = True
-    PORT =  5000
-    SERVER_IP = '0.0.0.0'
+    DEBUG:bool = True
+    PORT:int =  5000
+    SERVER_IP:str = '0.0.0.0'

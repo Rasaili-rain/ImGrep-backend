@@ -1,15 +1,14 @@
 import logging
 import colorlog
+from logging import Logger
 
-def setup_logger():
-    logger = logging.getLogger('image_search_engine')
-    logger.setLevel(logging.DEBUG)  # Capture all levels
+def setup_logger() -> Logger:
+    logger: Logger = logging.getLogger('image_search_engine')
+    logger.setLevel(logging.DEBUG)
 
-    # Clear existing handlers to avoid duplicates
     if logger.hasHandlers():
         logger.handlers.clear()
 
-    # Console handler with colored output
     handler = colorlog.StreamHandler()
     handler.setFormatter(
         colorlog.ColoredFormatter(
@@ -27,4 +26,4 @@ def setup_logger():
     logger.addHandler(handler)
     return logger
 
-logger = setup_logger()
+logger: Logger = setup_logger()

@@ -1,9 +1,9 @@
 from flask import Flask, Response, jsonify
 from sqlalchemy import create_engine
-from routes.image_upload import image_upload_bp
-from routes.user import user_bp
-from config import Config
-from utils.logger import logger
+from src.routes.image_upload import image_upload_bp
+from src.routes.user import user_bp
+from src.config import Config
+from src.utils.logger import logger
 
 app: Flask = Flask(__name__)
 app.config.from_object(Config)

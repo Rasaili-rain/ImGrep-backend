@@ -5,8 +5,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.sql import func
 from typing import Tuple
-from config import Config
-from utils.logger import logger
+from src.config import Config
+from src.utils.logger import logger
 
 user_bp: Blueprint = Blueprint('user', __name__)
 

@@ -7,12 +7,12 @@ __pycache__/
 .mypy_cache/
 .dmypy.json
 dmypy.json
-.env
+# .env
 src/__pycache__
 
 
 # Docker
-.env
+# .env
 .env.prod
 .env.dev
 docker-compose.override.yml

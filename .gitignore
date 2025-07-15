@@ -7,8 +7,10 @@ __pycache__/
 .mypy_cache/
 .dmypy.json
 dmypy.json
-# .env
+.env
 src/__pycache__
+faiss_db
+assets
 
 
 # Docker

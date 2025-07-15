@@ -8,5 +8,8 @@ class Config:
     PORT:int =  5000
     SERVER_IP:str = '0.0.0.0'
 
+    TOKENIZER_LENGTH = 20
+    EMBEDDING_DIM = 256
+
+    FAISS_DATABASE: str = "faiss_db"
     DATABASE_URL: str = os.getenv('DATABASE_URL', 'use the .env please')
-    #

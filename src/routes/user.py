@@ -5,6 +5,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.sql import func
 from typing import Tuple
+import os
+import faiss
+
 from src.config import Config
 from src.utils.logger import logger
 
@@ -34,22 +37,29 @@ def get_db_session() -> Session:
 def create_user() -> Tuple[Response, int]:
     try:
         session: Session = get_db_session()
-        
-        
+
         # Create new user
         user_id: UUIDType = uuid4()
         new_user: User = User(id=user_id)
         session.add(new_user)
         session.commit()
-        
         session.close()
-        
+
+        if not os.path.exists(Config.FAISS_DATABASE):
+            os.mkdir(Config.FAISS_DATABASE)
+
+        # Creating faiss db for image
+        faiss.write_index(
+            faiss.IndexFlatL2(Config.EMBEDDING_DIM),
+            f"{Config.FAISS_DATABASE}/{user_id}_img.faiss"
+        )
+
         return jsonify({
             "status": "success",
             "user_id": str(user_id),
             "message": "User created successfully"
         }), 201
-        
+
     except Exception as e:
         logger.error(f"Error creating user: {str(e)}")
         return jsonify({

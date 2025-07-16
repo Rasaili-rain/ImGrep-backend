@@ -1,4 +1,3 @@
-import os
 from flask import Flask, Response, jsonify
 from sqlalchemy import create_engine
 from src.routes.image_upload import image_upload_bp
@@ -25,12 +24,18 @@ def check_db_connection() -> None:
 # Loading the models
 logger.info("Loading ImGrep Model")
 # NOTE(slok): Download these files from drive (pinned in discord)
-app.imgrep = ImGrep("assets/vocabs.json", "assets/best_model.pt")
+app.imgrep = ImGrep("assets/vocabs.json", "assets/best_model.pt") # type: ignore
 logger.info("Loaded ImGrep Model")
 
 # Register blueprints
-app.register_blueprint(image_upload_bp, url_prefix='/api')
-app.register_blueprint(user_bp, url_prefix='/api')
+app.register_blueprint(image_upload_bp, url_prefix="/api")
+app.register_blueprint(user_bp, url_prefix="/api")
+
+
+@app.route("/test")
+def hello_world() -> str:
+    return "hello world"
+
 
 # Global error handler
 @app.errorhandler(Exception)
@@ -38,8 +43,9 @@ def handle_error(error: Exception) -> tuple[Response, int]:
     logger.error(f"Unexpected error: {str(error)}")
     return jsonify({"status": "error", "message": "An unexpected error occurred"}), 500
 
-# Run via: uv run src/main.py
-if __name__ == '__main__':
+
+# Run via: uv run main.py
+if __name__ == "__main__":
     logger.debug("Starting Imgrep backend")
     check_db_connection()
     if Config.DEBUG:

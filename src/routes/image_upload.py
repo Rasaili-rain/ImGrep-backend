@@ -55,12 +55,10 @@ def test_search() -> tuple[Response, int]:
         return jsonify({"status": "error", "message": "user_id is required"}),400
     if "query" not in payload:
         return jsonify({"status": "error", "message": "query is required"}),400
-    if "amount" not in payload:
-        return jsonify({"status": "error", "message": "amount is required"}),400
 
     user_id = payload.get("user_id")
     query = payload.get("query")
-    amount = payload.get("amount")
+    amount = payload.get("amount") if "amount" in payload else 5
 
     feat = current_app.imgrep.encode_text(query).numpy().astype("float32") # type: ignore
     feat = np.expand_dims(feat, axis=0)

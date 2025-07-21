@@ -13,7 +13,7 @@ ALLOWED_EXTENSIONS: set[str] = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@image_upload_bp.route("/test_upload", methods=["POST"])
+@image_upload_bp.route("/upload-image", methods=["POST"])
 def test_upload() -> tuple[Response, int]:
     if 'image' not in request.files:
         return jsonify({'status': 'error', 'message': 'No image provided'}), 400
@@ -47,7 +47,7 @@ def test_upload() -> tuple[Response, int]:
     }), 200
 
 
-@image_upload_bp.route("/test_search", methods=["POST"])
+@image_upload_bp.route("/search", methods=["POST"])
 def test_search() -> tuple[Response, int]:
     payload = request.get_json()
 

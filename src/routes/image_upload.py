@@ -43,7 +43,7 @@ def test_upload() -> tuple[Response, int]:
     return jsonify({
         "status": "ok",
         "index": idx,
-        "message": f"{fiass_path} updated sucessfully with image {file.filename}"
+        "message": f'{file.filename.split(".")[0]}', #f"{fiass_path} updated sucessfully with image {file.filename}"
     }), 200
 
 

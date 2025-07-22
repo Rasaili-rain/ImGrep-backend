@@ -6,6 +6,12 @@ from src.config import Config
 from src.utils.logger import logger
 from src.imgrep.imgrep import ImGrep
 
+import os
+os.environ['MKL_NUM_THREADS'] = '1'
+os.environ['OMP_NUM_THREADS'] = '1'
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
+
+
 app: Flask = Flask(__name__)
 app.config.from_object(Config)
 

@@ -5,16 +5,15 @@ from src.routes.user import user_bp
 from src.config import Config
 from src.utils.logger import logger
 from src.imgrep.imgrep import ImGrep
-
+from src.imgrep.ocr.ocr import OCR
 import os
+
 os.environ['MKL_NUM_THREADS'] = '1'
 os.environ['OMP_NUM_THREADS'] = '1'
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
-
 app: Flask = Flask(__name__)
 app.config.from_object(Config)
-
 
 # Check Neon Postgres database connection
 def check_db_connection() -> None:
@@ -30,7 +29,7 @@ def check_db_connection() -> None:
 # Loading the models
 logger.info("Loading ImGrep Model")
 # NOTE(slok): Download these files from drive (pinned in discord)
-app.imgrep = ImGrep("assets/vocabs.json", "assets/best_model.pt") # type: ignore
+app.imgrep = ImGrep("assets/vocabs.json", "assets/best_model.pt", "assets/ocr_weights.pth", "assets/craft_mlt_25k.pth") # type: ignore
 logger.info("Loaded ImGrep Model")
 
 # Register blueprints
@@ -44,10 +43,11 @@ def hello_world() -> str:
 
 
 # Global error handler
-@app.errorhandler(Exception)
-def handle_error(error: Exception) -> tuple[Response, int]:
-    logger.error(f"Unexpected error: {str(error)}")
-    return jsonify({"status": "error", "message": "An unexpected error occurred"}), 500
+# NOTE(slok): Removing error handler cuz it makes harder to debug
+# @app.errorhandler(Exception)
+# def handle_error(error: Exception) -> tuple[Response, int]:
+#     logger.error(f"Unexpected error: {str(error)}")
+#     return jsonify({"status": "error", "message": "An unexpected error occurred"}), 500
 
 
 # Run via: uv run main.py

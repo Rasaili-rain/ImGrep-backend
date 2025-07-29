@@ -13,6 +13,7 @@ dependencies = [
     "mypy>=1.16.1",
     "opencv-python>=4.12.0.88",
     "psycopg2-binary>=2.9.10",
+    "rapidfuzz>=3.13.0",
     "scikit-image>=0.25.2",
     "torch>=2.7.1",
     "torchvision>=0.22.1",

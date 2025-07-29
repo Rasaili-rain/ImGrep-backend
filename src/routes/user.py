@@ -1,37 +1,15 @@
 from flask import Blueprint, jsonify, Response
 from uuid import uuid4, UUID as UUIDType
-from sqlalchemy import create_engine, Column, UUID
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.sql import func
+from sqlalchemy.orm import Session
 from typing import Tuple
 import os
 import faiss
 
 from src.config import Config
 from src.utils.logger import logger
+from src.db import get_db_session, User
 
 user_bp: Blueprint = Blueprint('user', __name__)
-
-# SQLAlchemy setup
-Base = declarative_base()
-
-class User(Base):
-    __tablename__: str = 'users'
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-
-def get_db_session() -> Session:
-    try:
-        # Create engine with Neon
-        engine = create_engine(Config.DATABASE_URL, echo=Config.DEBUG)
-        # Create tables if they don't exist
-        Base.metadata.create_all(engine)
-        # Create session
-        Session = sessionmaker(bind=engine)
-        return Session()
-    except Exception as e:
-        logger.error(f"Database connection error: {str(e)}")
-        raise
 
 @user_bp.route('/user/new', methods=['POST'])
 def create_user() -> Tuple[Response, int]:
@@ -52,12 +30,6 @@ def create_user() -> Tuple[Response, int]:
         faiss.write_index(
             faiss.IndexFlatL2(Config.EMBEDDING_DIM),
             f"{Config.FAISS_DATABASE}/{user_id}_img.faiss"
-        )
-
-        # Creating faiss db for text
-        faiss.write_index(
-            faiss.IndexFlatL2(Config.EMBEDDING_DIM),
-            f"{Config.FAISS_DATABASE}/{user_id}_text.faiss"
         )
 
         return jsonify({

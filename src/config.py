@@ -14,3 +14,10 @@ class Config:
 
     FAISS_DATABASE: str = "faiss_db"
     DATABASE_URL: str = os.getenv("DATABASE_URL", "use the .env please")
+
+
+    ###############################
+    #      WEIGHT ADJUSTMENTS     #
+    ###############################
+
+    OCR_WEIGHT: float = 0.3

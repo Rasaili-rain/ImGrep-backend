@@ -34,11 +34,11 @@ def upload() -> tuple[Response, int]:
     # Generate image embeddings
     img_feat = current_app.imgrep.encode_image(pil_image).numpy().astype("float32") # type: ignore
     img_feat = np.expand_dims(img_feat, axis=0)
+    faiss.normalize_L2(img_feat)
 
     # Run OCR
     ocr_texts = current_app.imgrep.ocr.extract_text(pil_image)
     joined_ocr_texts = " ".join(ocr_texts).lower()
-    print(joined_ocr_texts)
 
     # Saving the image embeddings in faiss
     img_index = faiss.read_index(f"{Config.FAISS_DATABASE}/{user_id}_img.faiss")
@@ -47,12 +47,13 @@ def upload() -> tuple[Response, int]:
     faiss_path : str =f"{Config.FAISS_DATABASE}/{user_id}_img.faiss"
     faiss.write_index(img_index, faiss_path)
 
-    # Saving the ocr text in the db
-    session = get_db_session()
-    new_ocr = Ocr(user_id=user_id, faiss_id=str(idx), text=joined_ocr_texts)
-    session.add(new_ocr)
-    session.commit()
-    session.close()
+    # Saving the ocr text in the db only if there is a text
+    if len(joined_ocr_texts) > 0:
+        session = get_db_session()
+        new_ocr = Ocr(user_id=user_id, faiss_id=str(idx), text=joined_ocr_texts)
+        session.add(new_ocr)
+        session.commit()
+        session.close()
 
     return jsonify({
         "status": "ok",

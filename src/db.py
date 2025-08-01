@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, UUID, Integer, Text
+from sqlalchemy import Date, Float, create_engine, Column, UUID, Integer, Text
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
 from uuid import uuid4
@@ -29,10 +29,24 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
 
 
-class Ocr(Base):
-    __tablename__ = "ocr"
+# class Ocr(Base):
+#     __tablename__ = "ocr"
 
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+#     user_id = Column(Text, nullable=False)
+#     faiss_id = Column(Text, nullable=False)
+#     text = Column(Text, nullable=False)
+
+
+
+class ImageTable(Base):
+    __tablename__ = "image_table"
+    
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Text, nullable=False)
     faiss_id = Column(Text, nullable=False)
-    text = Column(Text, nullable=False)
+    text = Column(Text, nullable=True)
+    created_at = Column(Date, nullable=False)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    description = Column(Text, nullable=True)

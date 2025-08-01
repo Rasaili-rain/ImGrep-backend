@@ -2,6 +2,7 @@ import os
 from flask import Flask, Response, jsonify
 from sqlalchemy import create_engine
 
+
 # Models
 from src.imgrep.imgrep import ImGrep
 from src.imgrep.ocr.ocr import OCR

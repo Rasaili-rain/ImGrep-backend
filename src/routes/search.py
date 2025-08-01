@@ -5,7 +5,7 @@ import faiss
 import json
 
 from src.config import Config
-from src.db import Ocr, get_db_session
+from src.db import ImageTable, get_db_session
 
 search_bp = Blueprint("search", __name__)
 
@@ -67,8 +67,8 @@ def search() -> tuple[Response, int]:
 
     # Query all the ocr texts from a user
     ocr_results = (
-        session.query(Ocr)
-        .filter(Ocr.user_id == user_id)
+        session.query(ImageTable)
+        .filter(ImageTable.user_id == user_id)
         .all()
     )
 

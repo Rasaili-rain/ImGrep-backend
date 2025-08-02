@@ -13,7 +13,7 @@ search_bp = Blueprint("search", __name__)
 
 
 def datetime_match_boost(all_results, images_from_db, datetime_ranges):
-    if not datetime_ranges or not datetime_ranges.datetime_ranges:
+    if not datetime_ranges or not datetime_ranges.get('datetime_ranges'):
         return all_results
 
     for image in images_from_db:
@@ -21,14 +21,15 @@ def datetime_match_boost(all_results, images_from_db, datetime_ranges):
             continue
 
         image_time = image.created_at
-        for time_range in datetime_ranges.datetime_ranges:
+        # Access the datetime_ranges list from the dictionary
+        for time_range in datetime_ranges['datetime_ranges']:
             try:
-                start_time = datetime.fromisoformat(time_range.start_datetime)
-                end_time = datetime.fromisoformat(time_range.end_datetime)
+                start_time = datetime.fromisoformat(time_range['start_datetime'])
+                end_time = datetime.fromisoformat(time_range['end_datetime'])
                 if start_time <= image_time <= end_time:
                     if image.faiss_id in all_results:
                         all_results[image.faiss_id] += Config.DATE_TIME_BOOST_AMOUNT
-            except (ValueError, AttributeError):
+            except (ValueError, AttributeError, KeyError):
                 continue
 
     return all_results

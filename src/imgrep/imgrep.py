@@ -11,7 +11,7 @@ from .models.text_encoder import TransformerTextEncoder
 from .models.dual_encoder import ImageTextRetrievalModel
 from .data.tokenizer import CaptionTokenizer
 from .ocr.ocr import OCR
-
+from .caption_model.captioner import ImageCaptioner
 class ImGrep:
     def __init__(
         self,
@@ -19,6 +19,8 @@ class ImGrep:
         weights: str,
         ocr_weights: str,
         craft_weights: str,
+        captioner_weights:str, 
+        captioner_vocab: str,
         tokenizer_length: int = 20,
         embedding_dim: int = 256
     ):
@@ -37,6 +39,7 @@ class ImGrep:
 
         # Loading ocr
         self.ocr = OCR(ocr_weights, craft_weights)
+        self.captioner = ImageCaptioner(captioner_weights, captioner_vocab)
 
     def __load_tokenizer(self, vocabs: str):
         # Creating the tokenizer

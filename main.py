@@ -6,6 +6,7 @@ from sqlalchemy import create_engine
 # Models
 from src.imgrep.imgrep import ImGrep
 from src.imgrep.ocr.ocr import OCR
+from src.imgrep.caption_model.captioner import ImageCaptioner, generate_caption_simple
 
 # Routes
 from src.routes.image_upload import image_upload_bp
@@ -40,9 +41,11 @@ logger.info("Loading ImGrep Model")
 # NOTE(slok): Download these files from drive (pinned in discord)
 app.imgrep = ImGrep(
     "assets/vocabs.json", "assets/best_model.pt",
-    "assets/ocr_weights.pth", "assets/craft_mlt_25k.pth"
+    "assets/ocr_weights.pth", "assets/craft_mlt_25k.pth",
+    "assets/captioner_weights.pth.tar", "assets/vocab.pkl"
 ) # type: ignore
 logger.info("Loaded ImGrep Model")
+
 
 # Register blueprints
 app.register_blueprint(image_upload_bp, url_prefix="/api")

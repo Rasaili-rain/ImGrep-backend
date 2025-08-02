@@ -72,7 +72,7 @@ def upload() -> tuple[Response, int]:
     faiss.write_index(img_index, faiss_path)
 
     # Creating captions
-    img_caption = current_app.imgrep.captioner.get_captions(pil_image)
+    img_caption = current_app.imgrep.captioner.generate_caption(pil_image)
 
 
     # Saving the ocr text in the db even when ocr text = ""

@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 # Models
 from src.imgrep.imgrep import ImGrep
 from src.imgrep.ocr.ocr import OCR
-from src.imgrep.caption_model.captioner import ImageCaptioner, generate_caption_simple
+from src.imgrep.caption_model.captioner import ImageCaptioner
 
 # Routes
 from src.routes.image_upload import image_upload_bp
@@ -45,7 +45,6 @@ app.imgrep = ImGrep(
     "assets/captioner_weights.pth.tar", "assets/vocab.pkl"
 ) # type: ignore
 logger.info("Loaded ImGrep Model")
-
 
 # Register blueprints
 app.register_blueprint(image_upload_bp, url_prefix="/api")

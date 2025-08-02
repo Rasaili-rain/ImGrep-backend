@@ -41,10 +41,7 @@ class ImageCaptioner:
        
    
         
-        print(f"✅ Image Captioner initialized on {self.device}")
-        print(f"   Model: {model_path}")
-        print(f"   Vocabulary size: {len(self.vocab)}")
-    
+        print(f"Image Captioner initialized on {self.device}")
     def _load_model(self):
         """Load the trained model"""
         try:

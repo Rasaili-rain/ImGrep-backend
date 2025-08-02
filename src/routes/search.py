@@ -6,6 +6,7 @@ import json
 
 from src.config import Config
 from src.db import ImageTable, get_db_session
+import src.imgrep.date_time_parser.date_time_parser as dt
 
 search_bp = Blueprint("search", __name__)
 
@@ -21,6 +22,13 @@ def search() -> tuple[Response, int]:
     user_id = payload.get("user_id")
     query = payload.get("query")
     amount = payload.get("amount") if "amount" in payload else 5
+    
+
+    # --- Parse the date from the query --- #
+    extractor = dt.DateTimeRangeExtractor()
+    result = extractor.extract_datetime_ranges(query)
+    print(extractor.to_json(result))
+    # -- --- --- -- #
 
     # Generate text embeddings of the query
     feat = current_app.imgrep.encode_text(query).numpy().astype("float32") # type: ignore

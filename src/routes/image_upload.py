@@ -19,6 +19,7 @@ def allowed_file(filename: str) -> bool:
 
 def parse_date(date_str: str) -> date:
     try:
+        logger.info(f"datetime received : {date_str}")
         return datetime.fromisoformat(date_str.replace('Z', '+00:00')).date()
     except:
         logger.warning("fallback to todays date")

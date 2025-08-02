@@ -21,6 +21,7 @@ dependencies = [
     "spacy>=3.8.7",
     "python-dateutil>=2.9.0.post0",
     "nltk>=3.9.1",
+    "facenet-pytorch>=2.5.3",
 ]
 [tool.mypy] 
 strict = true

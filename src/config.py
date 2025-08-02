@@ -11,6 +11,7 @@ class Config:
 
     TOKENIZER_LENGTH = 20
     EMBEDDING_DIM = 256
+    FACE_EMBEDDING_DIM = 512
 
     FAISS_DATABASE: str = "faiss_db"
     DATABASE_URL: str = os.getenv("DATABASE_URL", "use the .env please")

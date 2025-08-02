@@ -1,13 +1,13 @@
 from datetime import date, datetime
 from flask import Blueprint, request, jsonify, Response, current_app
-from sqlalchemy import Date
+from sqlalchemy import Date, func, and_
 from werkzeug.datastructures import FileStorage
 from PIL import Image
 import numpy as np
 import faiss
 
 from src.config import Config
-from src.db import ImageTable, get_db_session
+from src.db import ImageTable, get_db_session, Label
 from src.utils.logger import logger
 
 
@@ -52,17 +52,21 @@ def upload() -> tuple[Response, int]:
     longitude = parse_float(request.form.get("longitude", ""))
     created_at = parse_datetime(request.form.get("created_at", ""))
 
+    # Get the session
+    session = get_db_session()
+
     # Load the image using PIL
     pil_image = Image.open(file.stream).convert("RGB")
+
+
+    #########################
+    #    Image Embedding    #
+    #########################
 
     # Generate image embeddings
     img_feat = current_app.imgrep.encode_image(pil_image).numpy().astype("float32") # type: ignore
     img_feat = np.expand_dims(img_feat, axis=0)
     faiss.normalize_L2(img_feat)
-
-    # Run OCR
-    ocr_texts = current_app.imgrep.ocr.extract_text(pil_image)
-    joined_ocr_texts = " ".join(ocr_texts).lower()
 
     # Saving the image embeddings in faiss
     img_index = faiss.read_index(f"{Config.FAISS_DATABASE}/{user_id}_img.faiss")
@@ -75,11 +79,73 @@ def upload() -> tuple[Response, int]:
     img_caption = current_app.imgrep.captioner.generate_caption(pil_image)
 
 
-    # Saving the ocr text in the db even when ocr text = ""
-    session = get_db_session()
+    #######################
+    #         OCR         #
+    #######################
+
+    ocr_texts = current_app.imgrep.ocr.extract_text(pil_image)
+    joined_ocr_texts = " ".join(ocr_texts).lower()
+
+
+    ##########################
+    #    Face Recognition    #
+    ##########################
+
+    face_id = None
+    label_id = None
+
+    face_feat = current_app.imgrep.face_recog.extract_face_embedding(pil_image)
+    if face_feat is not None:
+        # Ensure it's a NumPy array
+        face_feat = np.asarray(face_feat)
+
+        # Ensure it's float32 and 2D
+        face_feat = face_feat.astype("float32")
+        if face_feat.ndim == 1:
+            face_feat = np.expand_dims(face_feat, axis=0)  # (1, 512)
+
+        # Check with the db to get label
+        face_index = faiss.read_index(f"{Config.FAISS_DATABASE}/{user_id}_face.faiss")
+
+        # Get the top result only
+        dist, indices = face_index.search(face_feat, k=5)
+        dist = dist.tolist()
+        indices = indices.tolist()
+
+        print(indices)
+        print(dist)
+
+        # This means that we found a valid index
+        if indices[0][0] != -1 and dist[0][0] < 0.7:
+            another_face_id = str(indices[0][0])
+            similar_image = session.query(ImageTable).filter(
+                and_(
+                    ImageTable.face_id == another_face_id,
+                    ImageTable.user_id == user_id
+                )
+            ).first()
+            label_id = similar_image.label_id
+
+        # If new image generate new label
+        else:
+            label_count = session.query(func.count(Label.id)).scalar()
+            new_label = Label(name=f"Label_{label_count}")
+            session.add(new_label)
+            session.commit()
+            label_id = new_label.id
+
+        # Saving the face index into the faiss db
+        face_id = str(face_index.ntotal)
+        face_index.add(face_feat)
+        faiss_path : str =f"{Config.FAISS_DATABASE}/{user_id}_face.faiss"
+        faiss.write_index(face_index, faiss_path)
+
+    # Saving the image in db
     new_image = ImageTable(
         user_id=user_id,
         faiss_id=str(idx),
+        face_id=face_id,
+        label_id=label_id,
         text=joined_ocr_texts,
         created_at=created_at,
         latitude=latitude,
@@ -90,11 +156,9 @@ def upload() -> tuple[Response, int]:
     session.commit()
     session.close()
 
-
     return jsonify({
-        "status": "ok",
+        "status": "OK",
         "index": idx,
+        "label_id": label_id,
         "message": f'{file.filename.split(".")[0]}',
     }), 200
-
-

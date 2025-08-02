@@ -32,6 +32,12 @@ def create_user() -> Tuple[Response, int]:
             f"{Config.FAISS_DATABASE}/{user_id}_img.faiss"
         )
 
+        # Creating faiss db for face
+        faiss.write_index(
+            faiss.IndexFlatL2(Config.FACE_EMBEDDING_DIM),
+            f"{Config.FAISS_DATABASE}/{user_id}_face.faiss"
+        )
+
         return jsonify({
             "status": "success",
             "user_id": str(user_id),

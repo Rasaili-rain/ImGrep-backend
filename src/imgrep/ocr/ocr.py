@@ -48,7 +48,7 @@ class OCR:
 
     def __load_craft_model(self, model_path: str):
         net = CRAFT()
-        state_dict = torch.load(model_path, map_location='cpu')
+        state_dict = torch.load(model_path, map_location=self.device)
         new_state_dict = OrderedDict()
         for k, v in state_dict.items():
             name = k.replace("module.", "")

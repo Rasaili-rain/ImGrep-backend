@@ -1,5 +1,5 @@
-from sqlalchemy import DateTime, Float, create_engine, Column, UUID, Integer, Text
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy import DateTime, Float, create_engine, Column, UUID, Integer, Text, ForeignKey
+from sqlalchemy.orm import sessionmaker, Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from uuid import uuid4
 
@@ -41,12 +41,25 @@ class User(Base):
 
 class ImageTable(Base):
     __tablename__ = "image_table"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Text, nullable=False)
     faiss_id = Column(Text, nullable=False)
+    face_id = Column(Text, nullable=True)
     text = Column(Text, nullable=True)
     created_at = Column(DateTime, nullable=False)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     description = Column(Text, nullable=True)
+    label_id = Column(Integer, ForeignKey("label.id"), nullable=True)
+
+    label = relationship("Label", back_populates="images")
+
+
+class Label(Base):
+    __tablename__ = "label"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(Text, nullable=False)
+
+    images = relationship("ImageTable", back_populates="label")

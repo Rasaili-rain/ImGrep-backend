@@ -97,7 +97,6 @@ def search() -> tuple[Response, int]:
     #######################
     #      OCR SEARCH     #
     #######################
-
     session = get_db_session()
     user_images = session.query(ImageTable).filter(ImageTable.user_id == user_id).all()
 

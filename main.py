@@ -12,6 +12,7 @@ from src.imgrep.caption_model.captioner import ImageCaptioner
 from src.routes.image_upload import image_upload_bp
 from src.routes.search import search_bp
 from src.routes.user import user_bp
+from src.routes.get_caption import get_caption
 
 # Extras
 from src.config import Config
@@ -50,6 +51,7 @@ logger.info("Loaded ImGrep Model")
 app.register_blueprint(image_upload_bp, url_prefix="/api")
 app.register_blueprint(user_bp, url_prefix="/api")
 app.register_blueprint(search_bp, url_prefix="/api")
+app.register_blueprint(get_caption, url_prefix="/api")
 
 
 @app.route("/test")

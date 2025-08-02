@@ -21,3 +21,4 @@ class Config:
     ###############################
 
     OCR_WEIGHT: float = 0.3
+    DATE_TIME_BOOST_AMOUNT : float = 0.05

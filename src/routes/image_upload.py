@@ -17,13 +17,14 @@ ALLOWED_EXTENSIONS: set[str] = {'png', 'jpg', 'jpeg', 'avif'}
 def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def parse_date(date_str: str) -> date:
+def parse_datetime(datetime_str: str) -> datetime:
     try:
-        logger.info(f"datetime received : {date_str}")
-        return datetime.fromisoformat(date_str.replace('Z', '+00:00')).date()
+        logger.info(f"datetime received: {datetime_str}")
+        return datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
     except:
-        logger.warning("fallback to todays date")
-        return date.today()
+        logger.warning("fallback to now()")
+        return datetime.now(datetime.timezone.utc)
+
 
 def parse_float(value_str: str) -> float | None:
     if not value_str:
@@ -49,7 +50,7 @@ def upload() -> tuple[Response, int]:
 
     latitude = parse_float(request.form.get("latitude", ""))
     longitude = parse_float(request.form.get("longitude", ""))
-    created_at = parse_date(request.form.get("created_at", ""))
+    created_at = parse_datetime(request.form.get("created_at", ""))
 
     # Load the image using PIL
     pil_image = Image.open(file.stream).convert("RGB")

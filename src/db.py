@@ -1,4 +1,4 @@
-from sqlalchemy import Date, Float, create_engine, Column, UUID, Integer, Text
+from sqlalchemy import DateTime, Float, create_engine, Column, UUID, Integer, Text
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
 from uuid import uuid4
@@ -46,7 +46,7 @@ class ImageTable(Base):
     user_id = Column(Text, nullable=False)
     faiss_id = Column(Text, nullable=False)
     text = Column(Text, nullable=True)
-    created_at = Column(Date, nullable=False)
+    created_at = Column(DateTime, nullable=False)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     description = Column(Text, nullable=True)

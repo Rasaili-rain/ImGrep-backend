@@ -75,6 +75,9 @@ def upload() -> tuple[Response, int]:
     faiss_path : str =f"{Config.FAISS_DATABASE}/{user_id}_img.faiss"
     faiss.write_index(img_index, faiss_path)
 
+    # Creating captions
+    img_caption = current_app.imgrep.captioner.generate_caption(pil_image)
+
 
     #######################
     #         OCR         #
@@ -147,7 +150,7 @@ def upload() -> tuple[Response, int]:
         created_at=created_at,
         latitude=latitude,
         longitude=longitude,
-        description = "" #TODO
+        description = img_caption
     )
     session.add(new_image)
     session.commit()

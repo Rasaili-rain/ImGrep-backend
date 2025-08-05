@@ -7,7 +7,7 @@ import json
 from PIL import Image
 
 from src.config import Config
-from src.db import ImageTable, get_db_session
+from src.db import ImageTable, get_db_session, Label
 import src.imgrep.date_time_parser.date_time_parser as dt
 
 search_bp = Blueprint("search", __name__)
@@ -47,6 +47,8 @@ def search() -> tuple[Response, int]:
 
     user_id = payload.get("user_id")
     query = payload.get("query")
+
+    # NOTE(slok): Amount is depricated
     amount = payload.get("amount") if "amount" in payload else 5
 
     # --- Parse the date from the query --- #
@@ -67,37 +69,23 @@ def search() -> tuple[Response, int]:
     #######################
 
     img_index = faiss.read_index(f"{Config.FAISS_DATABASE}/{user_id}_img.faiss")
-    img_dist, img_indices = img_index.search(feat, k=amount)
+    _, img_dists, img_indices = img_index.range_search(feat, Config.EMBEDDING_SEARCH_RANGE)
 
-    # Converting from numpy to python list
-    img_dist = img_dist.tolist()
-    img_indices = img_indices.tolist()
-
-    # Clean the indices and distance as there can be -1 indices and large distances
-    cleaned_indices = []
-    cleaned_dists = []
-
-    for idx, dist in zip(img_indices[0], img_dist[0]):
-        if idx != 1 and dist < 1e10:
-            cleaned_indices.append(idx)
-            cleaned_dists.append(dist)
-
-    img_indices = [cleaned_indices]
-    img_dist = [cleaned_dists]
-
-    # Normalize distances to similarities
-    max_dist = np.max(img_dist[0])
+    # Converting distances to the score from 0 - 1 (1 Begin the top)
+    max_dist = np.max(img_dists)
     image_scores = {
-        str(idx): 1 - (dist / max_dist)
-        for idx, dist in zip(img_indices[0], img_dist[0])
+        str(idx): float(1 - (dist / max_dist))
+        for idx, dist in zip(img_indices, img_dists)
     }
 
     for faiss_id, img_score in image_scores.items():
         all_results[faiss_id] = img_score
 
+
     #######################
     #      OCR SEARCH     #
     #######################
+
     session = get_db_session()
     user_images = session.query(ImageTable).filter(ImageTable.user_id == user_id).all()
 
@@ -112,20 +100,46 @@ def search() -> tuple[Response, int]:
         else:
             all_results[image.faiss_id] = ocr_score
 
-    # Sorting the result
+
+    #########################
+    #      LABEL SEARCH     #
+    #########################
+
+    labels = session.query(Label).filter(Label.user_id == user_id).all()
+    for label in labels:
+        label_score = token_set_ratio(query.lower(), label.name.lower()) / 100
+
+        # If the label has sufficient score
+        if label_score > Config.LABEL_SCORE_THRESHOLD:
+
+            # Get all the images related to that label
+            images = label.images
+
+            # Add it to the result
+            for image in images:
+                if image.faiss_id in all_results:
+                    all_results[image.faiss_id] += Config.LABEL_WEIGHT * label_score 
+                else:
+                    all_results[image.faiss_id] = label_score 
+
+
+    # Sorting the result and triming off the poor results
     print("All Result:", json.dumps(all_results, indent=4))
-    # final_result = sorted(all_results.items(), key=lambda x: x[1], reverse=True)
     final_result = sorted(
-    	[(k, v) for k, v in all_results.items() if v > 0.25],
+    	[(i, s) for i, s in all_results.items() if s > Config.SEARCH_SCORE_THRESHOLD],
     	key=lambda x: x[1],
     	reverse=True
     )
     print("Final Result:", json.dumps(final_result, indent=4))
 
-    distances = [float(score) for _, score in final_result]
+    distances = [score for _, score in final_result]
     indices = [int(faiss_id) for faiss_id, _ in final_result]
 
-    return jsonify({"status": "ok", "distances": distances, "indices": indices}), 200
+    return jsonify({
+        "status": "ok",
+        "distances": distances,
+        "indices": indices
+    }), 200
 
 
 @search_bp.route("/search/image", methods=["POST"])

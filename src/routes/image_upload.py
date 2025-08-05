@@ -118,20 +118,21 @@ def upload() -> tuple[Response, int]:
         # This means that we found a valid index
         if indices[0][0] != -1 and dist[0][0] < 0.7:
             another_face_id = str(indices[0][0])
-            print(another_face_id)
             similar_image = session.query(ImageTable).filter(
                 and_(
                     ImageTable.face_id == another_face_id,
                     ImageTable.user_id == user_id
                 )
             ).first()
-            print(similar_image)
             label_id = similar_image.label_id
 
         # If new image generate new label
         else:
             label_count = session.query(func.count(Label.id)).scalar()
-            new_label = Label(name=f"Label_{label_count}")
+            new_label = Label(
+                name=f"Label_{label_count}",
+                user_id=user_id
+            )
             session.add(new_label)
             session.commit()
             label_id = new_label.id

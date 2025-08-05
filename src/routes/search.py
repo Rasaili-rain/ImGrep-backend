@@ -4,6 +4,7 @@ from flask import Blueprint, request, jsonify, Response, current_app
 import numpy as np
 import faiss
 import json
+from PIL import Image
 
 from src.config import Config
 from src.db import ImageTable, get_db_session
@@ -112,10 +113,64 @@ def search() -> tuple[Response, int]:
             all_results[image.faiss_id] = ocr_score
 
     # Sorting the result
-    print(json.dumps(all_results, indent=4))
-    final_result = sorted(all_results.items(), key=lambda x: x[1], reverse=True)
+    print("All Result:", json.dumps(all_results, indent=4))
+    # final_result = sorted(all_results.items(), key=lambda x: x[1], reverse=True)
+    final_result = sorted(
+    	[(k, v) for k, v in all_results.items() if v > 0.25],
+    	key=lambda x: x[1],
+    	reverse=True
+    )
+    print("Final Result:", json.dumps(final_result, indent=4))
 
     distances = [float(score) for _, score in final_result]
     indices = [int(faiss_id) for faiss_id, _ in final_result]
 
     return jsonify({"status": "ok", "distances": distances, "indices": indices}), 200
+
+
+@search_bp.route("/search/image", methods=["POST"])
+def search_image() -> tuple[Response, int]:
+    # Get the image file
+    if 'image' not in request.files:
+        return jsonify({'status': 'error', 'message': 'No image provided'}), 400
+    file = request.files["image"]
+
+    # Get user ID
+    user_id = request.form.get("user_id")
+    if not user_id:
+        return jsonify({"status": "error", "message": "user_id not provided"}), 400
+
+    #NOTE(slok): Haven't added the extension check here
+    if not file or not file.filename:
+        return jsonify({'status': 'error', 'message': 'Invalid or no file selected'}), 400
+
+    # Load the PIL image
+    pil_image = Image.open(file.stream).convert("RGB")
+
+    # Generate image embeddings
+    img_feat = current_app.imgrep.encode_image(pil_image).numpy().astype("float32") # type: ignore
+    img_feat = np.expand_dims(img_feat, axis=0)
+    faiss.normalize_L2(img_feat)
+
+    # Searching in the image faiss db
+    img_index = faiss.read_index(f"{Config.FAISS_DATABASE}/{user_id}_img.faiss")
+    _, img_dists, img_indices = img_index.range_search(img_feat, 1.5)
+
+    print("Distances:", json.dumps(img_dists.tolist(), indent=4))
+    print("Indices:", json.dumps(img_indices.tolist(), indent=4))
+
+    result = {}
+    for dist, idx in zip(img_dists, img_indices):
+        result[int(idx)] = float(dist)
+
+    final_result = sorted(result.items(), key=lambda x:x[1]) 
+    print("Final Result:", json.dumps(final_result,indent=4))
+    
+    distances = [d for _, d in final_result]
+    indices = [i for i, _ in final_result]
+
+    return jsonify({
+        "status": "ok",
+        "distances": distances,
+        "indices": indices
+    }), 200

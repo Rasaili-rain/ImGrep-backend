@@ -21,5 +21,10 @@ class Config:
     #      WEIGHT ADJUSTMENTS     #
     ###############################
 
+    SEARCH_SCORE_THRESHOLD: float = 0.15
+    LABEL_SCORE_THRESHOLD: float = 0.5
+
+    EMBEDDING_SEARCH_RANGE: float = 1.5
     OCR_WEIGHT: float = 0.3
+    LABEL_WEIGHT: float = 0.5
     DATE_TIME_BOOST_AMOUNT : float = 0.5  #needs to be dialed (Slok??)

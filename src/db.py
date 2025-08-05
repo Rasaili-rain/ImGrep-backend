@@ -60,6 +60,7 @@ class Label(Base):
     __tablename__ = "label"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Text, nullable=True)
     name = Column(Text, nullable=False)
 
     images = relationship("ImageTable", back_populates="label")

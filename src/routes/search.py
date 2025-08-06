@@ -129,7 +129,7 @@ def search() -> tuple[Response, int]:
     	[(i, s) for i, s in all_results.items() if s > Config.SEARCH_SCORE_THRESHOLD],
     	key=lambda x: x[1],
     	reverse=True
-    )
+    )[:amount]
     print("Final Result:", json.dumps(final_result, indent=4))
 
     distances = [score for _, score in final_result]
